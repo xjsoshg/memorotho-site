@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>Kasikas sa SAS Photobooth</title>
+
+<style>
+
+body{
+background:#111;
+color:white;
+font-family:Arial;
+text-align:center;
+margin:0;
+}
+
+h1{
+padding:20px;
+color:#ff2d2d;
+}
+
+.gallery{
+display:grid;
+grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+gap:12px;
+padding:20px;
+}
+
+.gallery img{
+width:100%;
+border-radius:10px;
+cursor:pointer;
+transition:0.2s;
+}
+
+.gallery img:hover{
+transform:scale(1.05);
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>📸 Kasikas sa SAS Photobooth</h1>
+
+<div class="gallery" id="gallery"></div>
+
+<script>
+
+const PROJECT = "rpjwiwlrwgayewgqbors"
+
+const storageURL =
+`https://${PROJECT}.supabase.co/storage/v1/object/public/events/kasikas/`
+
+async function loadImages(){
+
+let res = await fetch(
+`https://${PROJECT}.supabase.co/storage/v1/object/list/events`,
+{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+prefix:"kasikas"
+})
+})
+
+let images = await res.json()
+
+let gallery = document.getElementById("gallery")
+
+gallery.innerHTML=""
+
+images.reverse().forEach(img=>{
+
+let url = storageURL + img.name
+
+gallery.innerHTML += `
+<a href="${url}" download>
+<img src="${url}">
+</a>
+`
+
+})
+
+}
+
+loadImages()
+
+setInterval(loadImages,3000)
+
+</script>
+
+</body>
+
+</html>
