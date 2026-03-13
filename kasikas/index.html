@@ -1,41 +1,114 @@
 <!DOCTYPE html>
 <html>
-
 <head>
 
-<title>Kasikas sa SAS Photobooth</title>
+<title>Memorotho x Kasikas sa SAS</title>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 
 <style>
 
 body{
-background:#111;
+background:linear-gradient(135deg,#000000,#1a0000,#000000);
 color:white;
-font-family:Arial;
-text-align:center;
+font-family:'Segoe UI', Arial, sans-serif;
 margin:0;
+padding:30px;
+text-align:center;
 }
 
-h1{
-padding:20px;
+.container{
+max-width:900px;
+margin:auto;
+}
+
+.title{
+font-size:48px;
+font-weight:bold;
 color:#ff2d2d;
+letter-spacing:2px;
+margin-bottom:10px;
 }
 
-.gallery{
-display:grid;
-grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
-gap:12px;
-padding:20px;
+.subtitle{
+font-size:20px;
+color:#ffffff;
+margin-bottom:30px;
 }
 
-.gallery img{
-width:100%;
+.photo-box{
+background:#111;
+padding:15px;
+border-radius:15px;
+box-shadow:0 20px 50px rgba(255,0,0,0.4);
+margin-bottom:25px;
+}
+
+#photo{
+max-width:100%;
+border-radius:10px;
+}
+
+.qr-section{
+margin-top:20px;
+}
+
+#qr{
+margin-top:15px;
+}
+
+.actions{
+margin-top:30px;
+}
+
+button{
+padding:14px 28px;
+margin:10px;
+font-size:16px;
+font-weight:bold;
+border:none;
 border-radius:10px;
 cursor:pointer;
-transition:0.2s;
+transition:0.3s;
 }
 
-.gallery img:hover{
-transform:scale(1.05);
+.download{
+background:white;
+color:black;
+}
+
+.download:hover{
+background:#e5e5e5;
+}
+
+.share{
+background:#ff2d2d;
+color:white;
+}
+
+.share:hover{
+background:#cc0000;
+}
+
+.footer{
+margin-top:45px;
+font-size:18px;
+color:#ccc;
+}
+
+.social-icons{
+margin-top:15px;
+}
+
+.social-icons img{
+width:45px;
+margin:10px;
+cursor:pointer;
+transition:0.3s;
+}
+
+.social-icons img:hover{
+transform:scale(1.2);
 }
 
 </style>
@@ -44,18 +117,62 @@ transform:scale(1.05);
 
 <body>
 
-<h1>📸 Kasikas sa SAS Photobooth</h1>
+<div class="container">
 
-<div class="gallery" id="gallery"></div>
+<div class="title">Memorotho × Kasikas sa SAS</div>
+<div class="subtitle">Capture the Moment • Keep the Memory</div>
+
+<div class="photo-box">
+<img id="photo">
+</div>
+
+<div class="qr-section">
+
+<h2>Scan QR to Download Your Photo</h2>
+
+<canvas id="qr"></canvas>
+
+</div>
+
+<div class="actions">
+
+<button class="download" onclick="downloadPhoto()">Download Photo</button>
+
+<button class="share" onclick="sharePhoto()">Share</button>
+
+</div>
+
+<div class="footer">
+
+Follow us for more photobooth memories
+
+<div class="social-icons">
+
+<a href="https://www.facebook.com/memorotho" target="_blank">
+<img src="https://cdn-icons-png.flaticon.com/512/733/733547.png">
+</a>
+
+<a href="https://instagram.com/memorotho" target="_blank">
+<img src="https://cdn-icons-png.flaticon.com/512/733/733558.png">
+</a>
+
+</div>
+
+</div>
+
+</div>
 
 <script>
 
-const PROJECT = "rpjwiwlrwgayewgqbors"
+let currentPhoto=""
+let photoUrl=""
+
+const PROJECT="YOUR_PROJECT_ID"
 
 const storageURL =
 `https://${PROJECT}.supabase.co/storage/v1/object/public/events/kasikas/`
 
-async function loadImages(){
+async function loadPhoto(){
 
 let res = await fetch(
 `https://${PROJECT}.supabase.co/storage/v1/object/list/events`,
@@ -69,32 +186,67 @@ prefix:"kasikas"
 })
 })
 
-let images = await res.json()
+let data = await res.json()
 
-let gallery = document.getElementById("gallery")
+if(!data || data.length===0) return
 
-gallery.innerHTML=""
+data.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at))
 
-images.reverse().forEach(img=>{
+let latest=data[0].name
 
-let url = storageURL + img.name
+if(latest!==currentPhoto){
 
-gallery.innerHTML += `
-<a href="${url}" download>
-<img src="${url}">
-</a>
-`
+currentPhoto=latest
 
-})
+photoUrl = storageURL + latest
+
+document.getElementById("photo").src = photoUrl
+
+QRCode.toCanvas(
+document.getElementById("qr"),
+photoUrl
+)
 
 }
 
-loadImages()
+}
 
-setInterval(loadImages,3000)
+function downloadPhoto(){
+
+if(!photoUrl) return
+
+let a=document.createElement("a")
+a.href=photoUrl
+a.download="memorotho-photo.jpg"
+a.click()
+
+}
+
+async function sharePhoto(){
+
+if(!photoUrl) return
+
+if(navigator.share){
+
+navigator.share({
+title:"Memorotho x Kasikas sa SAS",
+text:"Check out my photo from the Memorotho Photobooth!",
+url:photoUrl
+})
+
+}else{
+
+alert("Sharing not supported on this device")
+
+}
+
+}
+
+loadPhoto()
+
+setInterval(loadPhoto,3000)
 
 </script>
 
 </body>
-
 </html>
